@@ -9,7 +9,7 @@ process.env.DB_PATH = ':memory:';
 const { db, migrate } = require('../dist/db');
 const { createOrdersRouter } = require('../dist/routes/orders');
 const { createDailyPizzaRouter } = require('../dist/routes/daily-pizza');
-const { scheduledTrackingSteps } = require('../dist/services/order-status');
+const { scheduledTrackingSteps, resolveOrderStatus } = require('../dist/services/order-status');
 after(() => db.close());
 
 const customer = { name: 'Test Buyer', email: 'buyer@example.com', address: '1 Pizza Way' };
@@ -60,6 +60,7 @@ async function serve(t, connection, clock = () => new Date(beforeMidnight)) {
     },
     async tracking(id) {
       const response = await fetch(`${base}/${id}/status`);
+      assert.match(response.headers.get('content-type'), /^application\/json\b/);
       return { status: response.status, body: await response.json(),
         cacheControl: response.headers.get('cache-control') };
     },
@@ -79,7 +80,7 @@ function counts(connection) {
     connection.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n);
 }
 
-test('tracking transitions at exact inclusive two-minute boundaries and clamps before placement/after delivery', () => {
+test('production tracking resolves every boundary +/-1ms with scheduled timestamps and a fixed ETA', () => {
   const placement = new Date('2026-11-21T12:00:00.123Z');
   const expected = [
     ['received', '2026-11-21T12:00:00.123Z'],
@@ -89,11 +90,33 @@ test('tracking transitions at exact inclusive two-minute boundaries and clamps b
     ['delivered', '2026-11-21T12:08:00.123Z'],
   ];
   for (const [elapsed, count] of [
-    [-1, 1], [0, 1], [119999, 1], [120000, 2], [239999, 2], [240000, 3],
-    [359999, 3], [360000, 4], [479999, 4], [480000, 5], [86400000, 5],
+    [-86400000, 1], [-1, 1], [0, 1], [119999, 1], [120000, 2], [120001, 2],
+    [239999, 2], [240000, 3], [240001, 3], [359999, 3], [360000, 4],
+    [360001, 4], [479999, 4], [480000, 5], [480001, 5], [31536000000, 5],
   ]) {
-    assert.deepEqual(scheduledTrackingSteps(placement, new Date(placement.getTime() + elapsed)),
-      Object.fromEntries(expected.slice(0, count)), `elapsed ${elapsed}`);
+    const instant = new Date(placement.getTime() + elapsed);
+    const timestamps = Object.fromEntries(expected.slice(0, count));
+    assert.deepEqual(scheduledTrackingSteps(placement, instant), timestamps, `elapsed ${elapsed}`);
+    const connection = new DatabaseSync(':memory:');
+    try {
+      migrate(connection);
+      connection.prepare(`
+        INSERT INTO orders (created_at, customer_name, customer_email, shipping_address, total_cents)
+        VALUES (?, 'Boundary', 'buyer@example.com', 'Address', 1234)
+      `).run(placement.toISOString());
+      const tracking = {
+        order_id: 1, status: expected[count - 1][0], step_timestamps: timestamps,
+        estimated_delivery_at: '2026-11-21T12:08:00.123Z',
+      };
+      assert.deepEqual(resolveOrderStatus(connection, 1, instant), tracking, `elapsed ${elapsed}`);
+      assert.deepEqual(connection.prepare(
+        'SELECT status, reached_at FROM order_tracking_steps ORDER BY reached_at'
+      ).all().map(row => [row.status, row.reached_at]), expected.slice(0, count));
+      assert.deepEqual(resolveOrderStatus(connection, 1, new Date(placement.getTime() - 1)),
+        tracking, `backward clock after persisting elapsed ${elapsed}`);
+    } finally {
+      connection.close();
+    }
   }
 });
 
@@ -159,7 +182,7 @@ test('idempotent migration and lazy legacy backfill interpret SQLite placement a
 
 test('status errors are JSON, and failed tracking writes roll back checkout and partial progress', async t => {
   let now = '2026-11-21T12:00:00.000Z';
-  const { connection, post, tracking } = await fixture(t, () => new Date(now));
+  const { connection, post, get, tracking } = await fixture(t, () => new Date(now));
   for (const id of ['nope', '0', '-1', '1.5', 'Infinity', '9007199254740993']) {
     assert.deepEqual(await tracking(id),
       { status: 400, body: { error: 'Invalid id' }, cacheControl: 'no-store' });
@@ -171,24 +194,54 @@ test('status errors are JSON, and failed tracking writes roll back checkout and 
     CREATE TRIGGER fail_tracking BEFORE INSERT ON order_tracking_steps
     BEGIN SELECT RAISE(ABORT, 'Tracking write failed'); END;
   `);
-  const order = { customer, items: [{ productId: 1, quantity: 1 }] };
+  const order = { customer, items: [{ productId: 1, quantity: 2 }, { productId: 3, quantity: 3 }] };
   assert.deepEqual(await post(order), { status: 500, body: { error: 'Tracking write failed' } });
   assert.deepEqual(counts(connection), [0, 0]);
+  assert.equal(connection.prepare('SELECT COUNT(*) AS n FROM order_tracking_steps').get().n, 0);
   assert.equal(connection.prepare('SELECT COUNT(*) AS n FROM daily_pizza_selections').get().n, 0);
   connection.exec('DROP TRIGGER fail_tracking');
   const paid = await post(order);
   assert.equal(paid.status, 201);
+  assert.equal(paid.body.status, 'paid');
+  assert.deepEqual(counts(connection), [1, 2]);
+  assert.deepEqual(paid.body.items.map(item => [item.name_snapshot, item.quantity]),
+    [['First pizza', 2], ['Shirt', 3]]);
+  assert.equal(paid.body.total_cents,
+    paid.body.items.reduce((total, item) => total + item.quantity * item.unit_price_cents, 0));
+  const received = connection.prepare(
+    'SELECT rowid, order_id, status, reached_at FROM order_tracking_steps'
+  ).all().map(row => ({ ...row }));
+  assert.deepEqual(received.map(({ order_id, status, reached_at }) => ({ order_id, status, reached_at })),
+    [{ order_id: paid.body.id, status: 'received', reached_at: now }]);
   connection.exec(`
-    CREATE TRIGGER fail_baking BEFORE INSERT ON order_tracking_steps WHEN NEW.status = 'baking'
-    BEGIN SELECT RAISE(ABORT, 'Baking write failed'); END;
+    CREATE TRIGGER fail_delivered BEFORE INSERT ON order_tracking_steps WHEN NEW.status = 'delivered'
+    BEGIN SELECT RAISE(ABORT, 'Delivery write failed'); END;
   `);
-  now = '2026-11-21T12:06:00.000Z';
+  now = '2027-11-21T12:00:00.000Z';
   assert.deepEqual(await tracking(paid.body.id),
     { status: 500, body: { error: 'Order status failed' }, cacheControl: 'no-store' });
-  assert.deepEqual(connection.prepare('SELECT status FROM order_tracking_steps').all()
-    .map(row => row.status), ['received']);
-  connection.exec('DROP TRIGGER fail_baking');
-  assert.equal((await tracking(paid.body.id)).body.status, 'out_for_delivery');
+  assert.deepEqual(connection.prepare(
+    'SELECT rowid, order_id, status, reached_at FROM order_tracking_steps'
+  ).all().map(row => ({ ...row })), received);
+  assert.deepEqual(await get(paid.body.id), { status: 200, body: paid.body });
+  connection.exec('DROP TRIGGER fail_delivered');
+  const delivered = { status: 200, cacheControl: 'no-store', body: {
+    order_id: paid.body.id, status: 'delivered', estimated_delivery_at: '2026-11-21T12:08:00.000Z',
+    step_timestamps: { received: '2026-11-21T12:00:00.000Z',
+      preparing: '2026-11-21T12:02:00.000Z', baking: '2026-11-21T12:04:00.000Z',
+      out_for_delivery: '2026-11-21T12:06:00.000Z', delivered: '2026-11-21T12:08:00.000Z' },
+  } };
+  assert.deepEqual(await tracking(paid.body.id), delivered);
+  const rows = connection.prepare(
+    'SELECT rowid, order_id, status, reached_at FROM order_tracking_steps ORDER BY reached_at'
+  ).all().map(row => ({ ...row }));
+  assert.equal(rows.length, 5);
+  assert.deepEqual(rows[0], received[0]);
+  assert.deepEqual(await tracking(paid.body.id), delivered);
+  assert.deepEqual(connection.prepare(
+    'SELECT rowid, order_id, status, reached_at FROM order_tracking_steps ORDER BY reached_at'
+  ).all().map(row => ({ ...row })), rows);
+  assert.deepEqual(await get(paid.body.id), { status: 200, body: paid.body });
   connection.exec('DROP TABLE order_tracking_steps');
   assert.deepEqual(await tracking(paid.body.id),
     { status: 500, body: { error: 'Order status failed' }, cacheControl: 'no-store' });
