@@ -87,6 +87,64 @@ async (page) => {
   check((await page.evaluate(() => JSON.parse(localStorage.getItem('planet-pizza-cart')))).length === 0, 'success did not clear cart');
   check(await page.getByText('$38.97', { exact: true }).count() === 1, 'confirmation pizza line');
   check(await page.getByText('$8.01', { exact: true }).count() === 1, 'confirmation discount line');
+  const paidId = paid.orders[0].id;
+  await page.goto(`${base}/order/000${paidId}`);
+  await page.getByRole('heading', { name: `Order #${paidId} confirmed 👽`, exact: true }).waitFor();
+  const confirmationTrack = page.getByRole('link', { name: 'Track your order', exact: true });
+  check(await confirmationTrack.getAttribute('href') === `/orders/${paidId}/track`, 'tracking must use persisted ID');
+  check(await page.getByText('Smoke Pizza One × 3', { exact: true }).count() === 1, 'confirmation manifest lost');
+  check(await page.getByText('$66.98', { exact: true }).count() === 1, 'confirmation total lost');
+  check(await page.getByText('Isolated Hangar', { exact: true }).count() === 1, 'confirmation address lost');
+  check(await page.getByRole('link', { name: 'Return to base', exact: true }).getAttribute('href') === '/', 'confirmation home lost');
+  await confirmationTrack.click();
+  await page.waitForURL(`${base}/orders/${paidId}/track`);
+  await page.getByText('$66.98', { exact: true }).waitFor();
+  await page.reload();
+  await page.getByText('$66.98', { exact: true }).waitFor();
+  const headerTrack = () => page.locator('header').getByRole('link', { name: 'Track order', exact: true });
+  check(await headerTrack().getAttribute('href') === '/orders/track', 'header lookup destination');
+  await headerTrack().click();
+  await page.waitForURL(`${base}/orders/track`);
+  await page.reload();
+  const number = page.getByRole('textbox', { name: 'Order number', exact: true });
+  await number.waitFor();
+  check(await page.locator('form input').count() === 1, 'lookup must not require customer details');
+  const orderRequests = [];
+  const onOrderRequest = request => {
+    if (request.method() === 'GET' && /\/api\/orders\/[^/]+(?:\/status)?$/.test(request.url())) {
+      orderRequests.push(request.url());
+    }
+  };
+  page.on('request', onOrderRequest);
+  const invalidNumbers = ['', '   ', '0', '0000', '-1', '+1', '1.5', '1e3', '0x10',
+    'pizza', '#1', '1 2', '9007199254740992'];
+  for (const [index, invalid] of invalidNumbers.entries()) {
+    await number.fill(invalid);
+    if (index % 2) await number.press('Enter');
+    else await page.getByRole('button', { name: 'Track order', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: 'positive whole-number order number' }).waitFor();
+    check(await number.getAttribute('aria-invalid') === 'true', `invalid accessibility: ${invalid}`);
+    check(await number.getAttribute('aria-describedby') === 'order-number-help order-number-error', 'error not associated');
+    check(page.url() === `${base}/orders/track`, `invalid number navigated: ${invalid}`);
+    check(orderRequests.length === 0, `invalid number requested an order: ${invalid}`);
+  }
+  await number.fill(`  000${paidId}  `);
+  check(await page.getByRole('alert').count() === 0, 'editing must clear validation error');
+  await number.press('Enter');
+  await page.waitForURL(`${base}/orders/${paidId}/track`);
+  await page.getByText('$66.98', { exact: true }).waitFor();
+  check(orderRequests.filter(url => url.endsWith(`/api/orders/${paidId}`)).length === 1, 'lookup duplicated order fetch');
+  check(orderRequests.filter(url => url.endsWith(`/api/orders/${paidId}/status`)).length === 1, 'lookup duplicated status fetch');
+  await headerTrack().click();
+  await number.fill('9007199254740991');
+  await page.getByRole('button', { name: 'Track order', exact: true }).click();
+  await page.waitForURL(`${base}/orders/9007199254740991/track`);
+  await page.getByRole('heading', { name: 'Order not found', exact: true }).waitFor();
+  await page.goto(`${base}/orders/not-a-number/track`);
+  await page.getByRole('heading', { name: 'Invalid order number', exact: true }).waitFor();
+  await page.goto(`${base}/signal-lost`);
+  await page.getByText('404 — signal lost.', { exact: true }).waitFor();
+  page.off('request', onOrderRequest);
   await control({ failPromotion: true });
   await page.goto(base);
   await card('Smoke Pizza One').waitFor();
@@ -98,11 +156,28 @@ async (page) => {
   check(await page.getByText('Pizza of the Day', { exact: true }).count() === 0, 'failed catalog badge');
   await page.goto(`${base}/cart`);
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('planet-pizza-cart')).length === 1);
+  await page.setViewportSize({ width: 320, height: 720 });
+  const beforeLookup = await page.evaluate(() => localStorage.getItem('planet-pizza-cart'));
+  const cartLink = page.locator('header').getByRole('link', { name: 'Cart 1', exact: true });
+  await cartLink.waitFor();
+  for (const name of ['Pizzas', 'Merch', 'Track order', 'Cart 1']) {
+    const bounds = await page.locator('header').getByRole('link', { name, exact: true }).boundingBox();
+    check(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 320, `narrow header link clipped: ${name}`);
+  }
+  check(await page.locator('header').evaluate(header => header.scrollWidth <= window.innerWidth), 'narrow header overflows');
+  await headerTrack().click();
+  await number.waitFor();
+  check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'narrow lookup overflows');
+  check(await page.evaluate(() => localStorage.getItem('planet-pizza-cart')) === beforeLookup, 'lookup modified cart');
+  await cartLink.click();
+  await page.waitForURL(`${base}/cart`);
+  await page.getByRole('spinbutton').first().waitFor();
   check(errors.length === 0, `browser errors: ${errors.join('; ')}`);
   page.off('request', onRequest);
   page.off('pageerror', onError);
   return { passed: true, addedFrom: ['banner', 'catalog', 'detail'], restoredQuantity: 3,
     beforeRolloverCents: 6118, paidCents: paid.orders[0].total_cents,
     unitCents: paid.items.map(item => item.unit_price_cents), submissions: submitted.length,
-    failureBrowsing: true, browserErrors: errors };
+    failureBrowsing: true, trackingEntryPoints: true, rejectedLookupNumbers: invalidNumbers.length,
+    narrowNavigation: true, browserErrors: errors };
 }
