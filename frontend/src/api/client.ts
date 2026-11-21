@@ -9,6 +9,13 @@ export type Product = {
   stock: number;
 };
 
+export type DailyPizza = {
+  product: Product;
+  original_price_cents: number;
+  discounted_price_cents: number;
+  valid_date: string;
+};
+
 export type OrderItem = {
   id: number;
   order_id: number;
@@ -44,6 +51,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  getDailyPizza: (signal?: AbortSignal) =>
+    request<DailyPizza>('/pizza-of-the-day', { cache: 'no-store', signal }),
   listProducts: (category?: 'pizza' | 'merch') =>
     request<Product[]>(`/products${category ? `?category=${category}` : ''}`),
   getProduct: (id: number) => request<Product>(`/products/${id}`),
