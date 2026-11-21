@@ -6,6 +6,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order/:id" element={<OrderConfirmationPage />} />
+        <Route path="/orders/:id/track" element={<OrderTrackingPage />} />
         <Route path="*" element={<p className="text-center text-slate-500 py-20">404 — signal lost.</p>} />
       </Route>
     </Routes>

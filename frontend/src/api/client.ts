@@ -38,6 +38,15 @@ export type Order = {
   items: OrderItem[];
 };
 
+export type TrackingStatus = 'received' | 'preparing' | 'baking' | 'out_for_delivery' | 'delivered';
+
+export type OrderTracking = {
+  order_id: number;
+  status: TrackingStatus;
+  step_timestamps: Partial<Record<TrackingStatus, string>>;
+  estimated_delivery_at: string;
+};
+
 const BASE = import.meta.env.VITE_API_URL ?? '/api';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -65,7 +74,10 @@ export const api = {
     items: { productId: number; quantity: number }[];
     promotion_date?: string;
   }) => request<Order>('/orders', { method: 'POST', body: JSON.stringify(body) }),
-  getOrder: (id: number) => request<Order>(`/orders/${id}`),
+  getOrder: (id: number, signal?: AbortSignal) =>
+    request<Order>(`/orders/${id}`, { cache: 'no-store', signal }),
+  getOrderStatus: (id: number, signal?: AbortSignal) =>
+    request<OrderTracking>(`/orders/${id}/status`, { cache: 'no-store', signal }),
 };
 
 export const formatPrice = (cents: number) => `$${(cents / 100).toFixed(2)}`;
