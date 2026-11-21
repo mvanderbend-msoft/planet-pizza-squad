@@ -219,6 +219,11 @@ uses this root command on Node 24. No dedicated test dependencies are needed.
 SQLite fixtures use memory or disposable databases underneath `backend/test`,
 never `backend/data/app.db`; clocks are injected/fixed and concurrency uses worker
 connections. Frontend tests compile production pricing/state modules in memory.
+Order lifecycle regressions check every transition ±1 ms without real lifecycle
+waits, skipped-poll catch-up across independently synchronized SQLite workers,
+rollback/retry and restart durability. Legacy UTC interpretation is also checked
+in separate non-UTC Node processes. Servers, workers, connections and disposable
+`backend/test/.order-status-*` fixtures are closed/removed after each test.
 
 For a repeatable real-browser smoke, run `npm run build`, then `npm run smoke:serve`.
 Open http://127.0.0.1:4177 in an isolated browser profile. This server uses the real
