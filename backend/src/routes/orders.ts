@@ -3,6 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { z } from 'zod';
 import { db } from '../db';
 import { discountedUnitPrice, resolveDailyPizza } from '../services/daily-pizza';
+import { resolveOrderStatus } from '../services/order-status';
 
 const createOrderSchema = z.object({
   promotion_date: z.string().date().optional(),
@@ -48,7 +49,7 @@ export function createOrdersRouter(
         'SELECT id, name, price_cents, stock FROM products WHERE id = ?'
       );
       const insertOrder = connection.prepare(
-        'INSERT INTO orders (customer_name, customer_email, shipping_address, total_cents) VALUES (?, ?, ?, ?)'
+        'INSERT INTO orders (customer_name, customer_email, shipping_address, total_cents, created_at) VALUES (?, ?, ?, ?, ?)'
       );
       const insertItem = connection.prepare(
         'INSERT INTO order_items (order_id, product_id, quantity, unit_price_cents, name_snapshot) VALUES (?, ?, ?, ?, ?)'
@@ -72,11 +73,15 @@ export function createOrdersRouter(
           resolved.push({ p, qty: it.quantity, unitPrice });
         }
 
-        const info = insertOrder.run(customer.name, customer.email, customer.address, total);
+        const placement = instant.toISOString();
+        const info = insertOrder.run(customer.name, customer.email, customer.address, total, placement);
         createdId = Number(info.lastInsertRowid);
         for (const { p, qty, unitPrice } of resolved) {
           insertItem.run(createdId, p.id, qty, unitPrice, p.name);
         }
+        connection.prepare(
+          "INSERT INTO order_tracking_steps (order_id, status, reached_at) VALUES (?, 'received', ?)"
+        ).run(createdId, placement);
         connection.exec('COMMIT');
       } catch (innerErr) {
         connection.exec('ROLLBACK');
@@ -88,6 +93,19 @@ export function createOrdersRouter(
     } catch (err: unknown) {
       const e = err as { status?: number; message?: string };
       res.status(e.status ?? 500).json({ error: e.message ?? 'Order failed' });
+    }
+  });
+
+  router.get('/:id/status', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id <= 0) return res.status(400).json({ error: 'Invalid id' });
+    try {
+      const tracking = resolveOrderStatus(connection, id, clock());
+      if (!tracking) return res.status(404).json({ error: 'Order not found' });
+      return res.json(tracking);
+    } catch {
+      return res.status(500).json({ error: 'Order status failed' });
     }
   });
 

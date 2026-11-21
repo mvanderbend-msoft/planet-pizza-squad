@@ -69,6 +69,7 @@ planet-pizza/
 | GET    | `/api/pizza-of-the-day`       | Persisted daily pizza with 20% off unit price |
 | POST   | `/api/orders`                 | Create order (prices recomputed server-side) |
 | GET    | `/api/orders/:id`             | Fetch order with line items                  |
+| GET    | `/api/orders/:id/status`      | Persisted simulated lifecycle and fixed ETA  |
 
 ### Daily pizza promotion
 
@@ -115,6 +116,41 @@ confirmation. Rollover, restart and later catalog-price changes never reprice th
 Order and item writes remain atomic.
 
 Run focused backend behavior tests with `npm --prefix backend test` (Node ≥ 22.5).
+
+### Order tracking
+
+Every order (including merchandise) follows `received` at placement, `preparing`
+at +2 minutes, `baking` at +4, `out_for_delivery` at +6 and `delivered` at +8.
+Boundaries are inclusive; before placement the status stays received, and delivered
+is terminal. `orders.status` remains `paid`; tracking never changes paid snapshots.
+Checkout captures one injected server instant for pricing, `created_at` and the
+received timestamp, saving tracking atomically with the order and items.
+
+`GET /api/orders/:id/status` returns `Cache-Control: no-store` and:
+
+```json
+{
+  "order_id": 1,
+  "status": "preparing",
+  "step_timestamps": {
+    "received": "2026-11-21T12:00:00.000Z",
+    "preparing": "2026-11-21T12:02:00.000Z"
+  },
+  "estimated_delivery_at": "2026-11-21T12:08:00.000Z"
+}
+```
+
+Timestamps are UTC ISO 8601. Reached steps include the current step, not future
+steps; ETA always stays placement +8 minutes, even after delivery. SQLite stores
+steps separately with a unique order/step key. Status reads atomically materialize
+all elapsed steps at their scheduled times, not polling times; no worker is needed.
+Repeated/concurrent reads and restarts retain timestamps, and backward clocks do
+not erase persisted progress. Migration is idempotent; legacy orders are backfilled
+on first status access using their unchanged `created_at`. Legacy SQLite
+`YYYY-MM-DD HH:mm:ss` strings are explicitly interpreted as UTC, never local time.
+Unknown positive integer IDs return 404 `{ "error": "Order not found" }`;
+invalid IDs return 400 `{ "error": "Invalid id" }`. Storage failures return JSON
+500 `{ "error": "Order status failed" }`, never partially saved successful status.
 
 ### Frontend promotion state
 
