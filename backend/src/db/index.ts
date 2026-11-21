@@ -9,9 +9,10 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 export const db = new DatabaseSync(DB_PATH);
 db.exec('PRAGMA journal_mode = WAL;');
 db.exec('PRAGMA foreign_keys = ON;');
+db.exec('PRAGMA busy_timeout = 5000;');
 
-export function migrate(): void {
-  db.exec(`
+export function migrate(connection: DatabaseSync = db): void {
+  connection.exec(`
     CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       sku TEXT UNIQUE NOT NULL,
@@ -40,6 +41,11 @@ export function migrate(): void {
       quantity INTEGER NOT NULL,
       unit_price_cents INTEGER NOT NULL,
       name_snapshot TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS daily_pizza_selections (
+      valid_date TEXT PRIMARY KEY,
+      product_id INTEGER NOT NULL REFERENCES products(id)
     );
   `);
 }

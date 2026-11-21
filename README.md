@@ -66,8 +66,33 @@ planet-pizza/
 | GET    | `/api/health`                 | Liveness probe                               |
 | GET    | `/api/products?category=…`    | List products (optional `pizza` / `merch`)   |
 | GET    | `/api/products/:id`           | Single product                               |
+| GET    | `/api/pizza-of-the-day`       | Persisted daily pizza with 20% off unit price |
 | POST   | `/api/orders`                 | Create order (prices recomputed server-side) |
 | GET    | `/api/orders/:id`             | Fetch order with line items                  |
+
+### Daily pizza promotion
+
+`GET /api/pizza-of-the-day` returns
+`{ product: Product, original_price_cents: number, discounted_price_cents: number, valid_date: "YYYY-MM-DD" }`.
+The full product retains its original `price_cents`; catalog and merchandise prices are unchanged.
+Responses use `Cache-Control: no-store`.
+
+Selections follow UTC calendar dates, rolling over at midnight UTC. All pizzas are
+eligible regardless of stock; merchandise is excluded. A calendar-day rotation over
+sorted pizza IDs chooses different pizzas on adjacent dates, even if no requests
+were made on intervening days. SQLite persists each date's selection across requests,
+concurrent callers, and restarts. An existing selection is never silently replaced.
+Menu mutation during the day is outside the no-admin scope.
+Fewer than two eligible pizzas returns HTTP 503
+`{ "error": "Daily promotion unavailable" }`.
+
+The reusable `resolveDailyPizza(connection, clock)` captures one server instant;
+`discountedUnitPrice(priceCents)` rounds the 20%-off unit price half-up to integer
+cents (`floor((priceCents * 80 + 50) / 100)`: 1299 → 1039, 1001 → 801).
+Order integration can reuse this rounded unit price before multiplying by quantity;
+this endpoint alone does not change order pricing or existing stock checks.
+
+Run focused backend behavior tests with `npm --prefix backend test` (Node ≥ 22.5).
 
 ## Notes & scope
 
