@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eef6ff"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <path d="M120 110 L160 80 Q200 110 240 80 L280 110 L320 150 L290 180 L275 165 L275 330 L125 330 L125 165 L110 180 L80 150 Z" fill="#f1f5f9" stroke="#0f172a" stroke-width="2"/>
+  <path d="M160 80 Q200 130 240 80" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <!-- Big checkmark stamp -->
+  <circle cx="200" cy="210" r="50" fill="none" stroke="#10b981" stroke-width="6"/>
+  <path d="M175 215 L195 235 L230 195" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="200" y="295" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="20" font-weight="900" fill="#7c3aed" letter-spacing="2">PROBED &amp;</text>
+  <text x="200" y="318" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="20" font-weight="900" fill="#7c3aed" letter-spacing="2">APPROVED</text>
+</svg>

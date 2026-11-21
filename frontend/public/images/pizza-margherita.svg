@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#fef9e7"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- Crust -->
+  <circle cx="200" cy="200" r="155" fill="#d4a574" stroke="#a0764d" stroke-width="4"/>
+  <!-- Cheese -->
+  <circle cx="200" cy="200" r="135" fill="#fde68a"/>
+  <!-- Sauce dollops -->
+  <circle cx="155" cy="170" r="22" fill="#ef4444" opacity="0.85"/>
+  <circle cx="240" cy="155" r="20" fill="#dc2626" opacity="0.85"/>
+  <circle cx="220" cy="240" r="24" fill="#ef4444" opacity="0.85"/>
+  <circle cx="150" cy="245" r="18" fill="#dc2626" opacity="0.85"/>
+  <!-- Basil leaves -->
+  <g fill="#16a34a">
+    <ellipse cx="180" cy="140" rx="10" ry="16" transform="rotate(-30 180 140)"/>
+    <ellipse cx="265" cy="200" rx="10" ry="16" transform="rotate(60 265 200)"/>
+    <ellipse cx="190" cy="265" rx="10" ry="16" transform="rotate(15 190 265)"/>
+    <ellipse cx="130" cy="200" rx="10" ry="16" transform="rotate(-70 130 200)"/>
+    <ellipse cx="245" cy="260" rx="10" ry="16" transform="rotate(40 245 260)"/>
+  </g>
+</svg>

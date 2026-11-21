@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#fef9e7"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="200" r="155" fill="#d4a574" stroke="#a0764d" stroke-width="4"/>
+  <circle cx="200" cy="200" r="135" fill="#fef3c7"/>
+  <!-- Cheese quadrants -->
+  <path d="M200 200 L200 65 A135 135 0 0 1 335 200 Z" fill="#fde68a" opacity="0.95"/>
+  <path d="M200 200 L335 200 A135 135 0 0 1 200 335 Z" fill="#fcd34d" opacity="0.85"/>
+  <path d="M200 200 L200 335 A135 135 0 0 1 65 200 Z" fill="#fef9c3" opacity="0.95"/>
+  <path d="M200 200 L65 200 A135 135 0 0 1 200 65 Z" fill="#fbbf24" opacity="0.7"/>
+  <!-- Soft melt highlights -->
+  <g fill="#ffffff" opacity="0.45">
+    <ellipse cx="160" cy="155" rx="22" ry="9" transform="rotate(-25 160 155)"/>
+    <ellipse cx="245" cy="160" rx="22" ry="9" transform="rotate(20 245 160)"/>
+    <ellipse cx="155" cy="250" rx="22" ry="9" transform="rotate(15 155 250)"/>
+    <ellipse cx="245" cy="245" rx="22" ry="9" transform="rotate(-20 245 245)"/>
+  </g>
+  <!-- Tiny gorgonzola blue dots -->
+  <g fill="#3b82f6" opacity="0.7">
+    <circle cx="170" cy="220" r="2.5"/>
+    <circle cx="225" cy="195" r="2.5"/>
+    <circle cx="200" cy="265" r="2.5"/>
+    <circle cx="260" cy="225" r="2.5"/>
+    <circle cx="140" cy="200" r="2"/>
+  </g>
+</svg>

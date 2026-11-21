@@ -1,0 +1,15 @@
+{
+  "name": "planet-pizza",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Alien / Area 51 themed pizza & merch webshop",
+  "scripts": {
+    "dev": "concurrently -n be,fe -c green,magenta \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "start": "npm --prefix backend run start",
+    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

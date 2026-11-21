@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#fef9e7"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="200" r="155" fill="#d4a574" stroke="#a0764d" stroke-width="4"/>
+  <circle cx="200" cy="200" r="135" fill="#fde68a"/>
+  <!-- Ham (pink squares) -->
+  <g fill="#fb7185" stroke="#be123c" stroke-width="0.8">
+    <rect x="150" y="155" width="22" height="22" rx="3" transform="rotate(15 161 166)"/>
+    <rect x="225" y="165" width="22" height="22" rx="3" transform="rotate(-20 236 176)"/>
+    <rect x="180" y="220" width="22" height="22" rx="3" transform="rotate(10 191 231)"/>
+    <rect x="240" y="240" width="22" height="22" rx="3" transform="rotate(-15 251 251)"/>
+    <rect x="135" y="240" width="22" height="22" rx="3" transform="rotate(25 146 251)"/>
+    <rect x="200" y="280" width="22" height="22" rx="3" transform="rotate(-10 211 291)"/>
+  </g>
+  <!-- Pineapple chunks (yellow triangles) -->
+  <g fill="#fbbf24" stroke="#b45309" stroke-width="0.8">
+    <polygon points="200,160 215,185 185,185"/>
+    <polygon points="265,210 280,235 250,235"/>
+    <polygon points="155,200 170,225 140,225"/>
+    <polygon points="215,260 230,285 200,285"/>
+    <polygon points="160,275 175,300 145,300"/>
+    <polygon points="270,160 285,185 255,185"/>
+  </g>
+</svg>

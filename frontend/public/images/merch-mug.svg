@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eef6ff"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- mug body -->
+  <rect x="110" y="120" width="180" height="200" rx="20" fill="#ffffff" stroke="#0f172a" stroke-width="3"/>
+  <!-- handle -->
+  <path d="M290 170 q50 0 50 50 q0 50 -50 50" fill="none" stroke="#0f172a" stroke-width="8"/>
+  <!-- coffee -->
+  <ellipse cx="200" cy="135" rx="80" ry="10" fill="#78350f"/>
+  <!-- alien face printed on mug -->
+  <g transform="translate(200 220)">
+    <ellipse cx="0" cy="0" rx="55" ry="65" fill="#bbf7d0"/>
+    <ellipse cx="-22" cy="-5" rx="14" ry="22" fill="#0f172a"/>
+    <ellipse cx="22" cy="-5" rx="14" ry="22" fill="#0f172a"/>
+    <ellipse cx="-22" cy="-10" rx="4" ry="6" fill="#ffffff"/>
+    <ellipse cx="22" cy="-10" rx="4" ry="6" fill="#ffffff"/>
+    <path d="M-10 35 q10 5 20 0" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <!-- steam -->
+  <g fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" opacity="0.6">
+    <path d="M160 110 q-10 -15 0 -30 q10 -15 0 -30"/>
+    <path d="M200 105 q-10 -15 0 -30 q10 -15 0 -30"/>
+    <path d="M240 110 q-10 -15 0 -30 q10 -15 0 -30"/>
+  </g>
+</svg>

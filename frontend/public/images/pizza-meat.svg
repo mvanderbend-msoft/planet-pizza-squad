@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#fef9e7"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="200" r="155" fill="#d4a574" stroke="#a0764d" stroke-width="4"/>
+  <circle cx="200" cy="200" r="135" fill="#fde68a"/>
+  <circle cx="200" cy="200" r="130" fill="#ef4444" opacity="0.35"/>
+  <!-- Pepperoni -->
+  <g fill="#b91c1c" stroke="#7f1d1d" stroke-width="1">
+    <circle cx="160" cy="160" r="18"/>
+    <circle cx="240" cy="240" r="18"/>
+    <circle cx="155" cy="245" r="16"/>
+  </g>
+  <!-- Sausage chunks -->
+  <g fill="#92400e">
+    <circle cx="220" cy="160" r="10"/>
+    <circle cx="190" cy="200" r="10"/>
+    <circle cx="265" cy="190" r="9"/>
+    <circle cx="200" cy="280" r="10"/>
+    <circle cx="135" cy="200" r="9"/>
+    <circle cx="280" cy="160" r="8"/>
+  </g>
+  <!-- Bacon strips -->
+  <g fill="#f87171" stroke="#7f1d1d" stroke-width="0.8">
+    <rect x="170" y="220" width="36" height="8" rx="3" transform="rotate(-15 188 224)"/>
+    <rect x="220" y="200" width="36" height="8" rx="3" transform="rotate(25 238 204)"/>
+    <rect x="135" y="265" width="34" height="8" rx="3" transform="rotate(20 152 269)"/>
+    <rect x="225" y="270" width="34" height="8" rx="3" transform="rotate(-10 242 274)"/>
+  </g>
+  <!-- Ham bits -->
+  <g fill="#fb7185">
+    <rect x="180" y="170" width="14" height="14" rx="2"/>
+    <rect x="245" y="265" width="14" height="14" rx="2"/>
+    <rect x="115" y="225" width="12" height="12" rx="2"/>
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Space Mono', ui-monospace, monospace;
+    color: #1e293b;
+    background:
+      radial-gradient(ellipse at 15% 0%, rgba(167, 139, 250, 0.18), transparent 55%),
+      radial-gradient(ellipse at 85% 100%, rgba(16, 185, 129, 0.18), transparent 55%),
+      linear-gradient(180deg, #eef6ff 0%, #fbfaf5 60%, #f4f2e9 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Orbitron', system-ui, sans-serif;
+    letter-spacing: 0.03em;
+    color: #064e3b;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-alien-600 px-4 py-2 font-display font-bold uppercase tracking-wider text-white transition hover:bg-alien-700 hover:shadow-glow disabled:opacity-50 disabled:hover:bg-alien-600;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md border-2 border-alien-600 px-4 py-2 font-display font-bold uppercase tracking-wider text-alien-700 transition hover:bg-alien-50 hover:shadow-soft disabled:opacity-50;
+  }
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white/80 backdrop-blur transition shadow-soft hover:border-alien-400 hover:shadow-glow;
+  }
+  .input {
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder-slate-400 focus:border-alien-500 focus:outline-none focus:ring-2 focus:ring-alien-200;
+  }
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.4em] text-cosmic-600;
+  }
+}
+

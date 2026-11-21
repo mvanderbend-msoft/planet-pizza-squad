@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <linearGradient id="bgL" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eef6ff"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bgL)"/>
+  <g>
+    <ellipse cx="200" cy="240" rx="130" ry="14" fill="#10b981" opacity="0.25"/>
+    <ellipse cx="200" cy="230" rx="120" ry="22" fill="#a78bfa"/>
+    <path d="M110 230 Q200 130 290 230 Z" fill="#475569" stroke="#10b981" stroke-width="2"/>
+    <circle cx="200" cy="190" r="36" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
+    <circle cx="190" cy="180" r="6" fill="#ffffff" opacity="0.6"/>
+    <circle cx="160" cy="245" r="5" fill="#10b981"/>
+    <circle cx="200" cy="252" r="5" fill="#a78bfa"/>
+    <circle cx="240" cy="245" r="5" fill="#34d399"/>
+  </g>
+  <text x="50%" y="370" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="14" fill="#047857" letter-spacing="4" font-weight="700">PLANET PIZZA</text>
+</svg>

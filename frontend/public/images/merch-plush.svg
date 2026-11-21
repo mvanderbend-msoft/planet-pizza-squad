@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eef6ff"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- body -->
+  <ellipse cx="200" cy="280" rx="90" ry="65" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
+  <!-- arms -->
+  <ellipse cx="120" cy="270" rx="22" ry="40" fill="#cbd5e1" stroke="#475569" stroke-width="2" transform="rotate(-20 120 270)"/>
+  <ellipse cx="280" cy="270" rx="22" ry="40" fill="#cbd5e1" stroke="#475569" stroke-width="2" transform="rotate(20 280 270)"/>
+  <!-- head -->
+  <ellipse cx="200" cy="155" rx="85" ry="95" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
+  <!-- big eyes -->
+  <ellipse cx="170" cy="160" rx="22" ry="32" fill="#0f172a"/>
+  <ellipse cx="230" cy="160" rx="22" ry="32" fill="#0f172a"/>
+  <ellipse cx="173" cy="148" rx="6" ry="9" fill="#ffffff"/>
+  <ellipse cx="233" cy="148" rx="6" ry="9" fill="#ffffff"/>
+  <!-- nostrils -->
+  <circle cx="195" cy="205" r="2" fill="#64748b"/>
+  <circle cx="205" cy="205" r="2" fill="#64748b"/>
+  <!-- mouth -->
+  <path d="M185 225 q15 8 30 0" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- cheek blush -->
+  <circle cx="150" cy="210" r="10" fill="#fb7185" opacity="0.5"/>
+  <circle cx="250" cy="210" r="10" fill="#fb7185" opacity="0.5"/>
+  <!-- feet -->
+  <ellipse cx="170" cy="345" rx="22" ry="10" fill="#94a3b8"/>
+  <ellipse cx="230" cy="345" rx="22" ry="10" fill="#94a3b8"/>
+</svg>
