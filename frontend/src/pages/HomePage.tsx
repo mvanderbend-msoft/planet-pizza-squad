@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, type Product } from '../api/client';
 import ProductCard from '../components/ProductCard';
+import DailyPizzaBanner from '../components/DailyPizzaBanner';
 
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
@@ -10,6 +11,7 @@ export default function HomePage() {
   }, []);
   return (
     <div className="space-y-12">
+      <DailyPizzaBanner />
       <section className="rounded-2xl border border-alien-200 bg-gradient-to-br from-white via-sky2-50 to-alien-50 p-10 text-center shadow-glow">
         <p className="eyebrow">classified — eyes only</p>
         <h1 className="mt-3 text-5xl font-black text-alien-700 md:text-6xl">They came for the pizza.</h1>

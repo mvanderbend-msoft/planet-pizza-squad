@@ -116,6 +116,23 @@ Order and item writes remain atomic.
 
 Run focused backend behavior tests with `npm --prefix backend test` (Node ≥ 22.5).
 
+### Frontend promotion state
+
+Home's top banner and the selected pizza's catalog badge share one
+`DailyPromotionProvider` above the cart provider. `useDailyPromotion()` exposes
+`promotion` (`productId`, `originalPriceCents`, `discountedPriceCents`, `validDate`),
+the unmodified `product` for display/add, `loading`, `error`, and
+`refresh(): Promise<DailyPromotion | null>`. Cart-pricing integration should reuse
+this provider/refresh rather than create another promotion cache.
+
+The provider expires yesterday's selection at midnight UTC and refreshes on tab
+visibility, window focus and page restoration. Superseded responses are ignored;
+failed or out-of-date responses clear the banner and badges, independently of
+ordinary product loading. Banner Add uses the existing cart operation, retaining
+base product prices; discounted cart/checkout display is a separate work item.
+
+Run focused frontend promotion tests with `npm --prefix frontend test`.
+
 ## Notes & scope
 
 - **MVP scope**: catalog browsing, cart, mock checkout, persisted orders.

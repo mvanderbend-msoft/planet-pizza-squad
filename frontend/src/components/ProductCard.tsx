@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom';
 import type { Product } from '../api/client';
 import { formatPrice } from '../api/client';
 import { useCart } from '../context/CartContext';
+import { useDailyPromotion } from '../context/DailyPromotionContext';
 
 export default function ProductCard({ product }: { product: Product }) {
   const { add } = useCart();
+  const { promotion } = useDailyPromotion();
   return (
     <div className="card flex flex-col overflow-hidden group">
       <Link to={`/product/${product.id}`} className="block aspect-square overflow-hidden bg-gradient-to-br from-sky2-50 to-alien-50">
@@ -16,6 +18,11 @@ export default function ProductCard({ product }: { product: Product }) {
         />
       </Link>
       <div className="flex flex-1 flex-col gap-2 p-4">
+        {product.category === 'pizza' && product.id === promotion?.productId && (
+          <span className="self-start rounded-full bg-alien-100 px-3 py-1 text-xs font-bold text-alien-700">
+            Pizza of the Day
+          </span>
+        )}
         <Link to={`/product/${product.id}`} className="font-display text-lg font-bold text-alien-700 hover:text-alien-600">
           {product.name}
         </Link>
