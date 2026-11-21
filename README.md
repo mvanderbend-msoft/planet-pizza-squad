@@ -78,3 +78,5 @@ planet-pizza/
 - Product images reference per-item SVGs that don't exist; the UI falls back to a generic neon-UFO placeholder.
 
 👽 *This site does not officially exist.*
+
+
