@@ -56,7 +56,7 @@ planet-pizza/
         ├── api/          # Typed fetch client
         ├── components/   # Layout, ProductCard
         ├── context/      # CartContext (localStorage-persisted)
-        └── pages/        # Home, Catalog, ProductDetail, Cart, Checkout, OrderConfirmation
+        └── pages/        # Home, Catalog, ProductDetail, Cart, Checkout, OrderConfirmation, OrderTracking
 ```
 
 ## API surface
@@ -151,6 +151,34 @@ on first status access using their unchanged `created_at`. Legacy SQLite
 Unknown positive integer IDs return 404 `{ "error": "Order not found" }`;
 invalid IDs return 400 `{ "error": "Invalid id" }`. Storage failures return JSON
 500 `{ "error": "Order status failed" }`, never partially saved successful status.
+
+#### Tracking page and refresh behavior
+
+Open `/orders/:id/track` directly or reload it without cart or localStorage data.
+The existing confirmation route remains `/order/:id`. Order numbers must be
+positive decimal safe integers; invalid numbers make no order requests. Static
+production hosts must fall back to `index.html` for these React Router URLs.
+
+The page immediately requests status and the immutable paid order manifest
+separately, using no-store requests. Five labeled steps expose the current step,
+reached timestamps, the server's fixed ETA and persisted item names, quantities,
+unit/line prices and total. No live catalog prices or client status transitions
+are used. Status refreshes 15 seconds **after each completed attempt**, without
+overlapping requests; paid items are not refetched on each poll. Delivered stops
+refreshes, even on the first response, keeping progress and the historical ETA.
+
+Network/server errors preserve all last-known data, show a retry notice and allow
+manual Retry. Initial failures are retryable too; status retries automatically
+while nonterminal. An independently failed item manifest can be recovered with
+Retry, including after delivery. A 404 from either order endpoint shows
+**Order not found** and stops work. Leaving the page or changing its order number
+cancels requests/timers and ignores late responses, including React StrictMode
+cleanup/restarts. Tracking never clears or modifies the cart.
+
+`frontend/src/context/orderTrackingStore.ts` exports `createOrderTrackingStore`
+(injectable API/timers, `start`, `stop`, `retry`, `subscribe`, `getSnapshot`) and
+`parseOrderId`. Focused owner tests use the existing in-memory TypeScript/native
+node:test pattern: `npm --prefix frontend test`.
 
 ### Frontend promotion state
 
