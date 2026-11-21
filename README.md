@@ -147,6 +147,36 @@ the cart; only success clears it. Confirmation continues to use server snapshots
 
 Run focused frontend promotion tests with `npm --prefix frontend test`.
 
+## Regression tests and isolated UI smoke
+
+Run `npm test` from the root for all native `node:test` regressions. `npm run build`
+compiles both packages and runs the same tests once; the required CI `build` job
+uses this root command on Node 24. No dedicated test dependencies are needed.
+SQLite fixtures use memory or disposable databases underneath `backend/test`,
+never `backend/data/app.db`; clocks are injected/fixed and concurrency uses worker
+connections. Frontend tests compile production pricing/state modules in memory.
+
+For a repeatable real-browser smoke, run `npm run build`, then `npm run smoke:serve`.
+Open http://127.0.0.1:4177 in an isolated browser profile. This server uses the real
+product, daily and order routes with an in-memory three-product fixture and fixed
+UTC clock; it does not boot the production server, seed or read its database.
+Stop it with Ctrl+C when finished.
+
+`frontend/test/ui-smoke.cjs` contains an executable `async (page) => …` Playwright
+snippet (use an already-available Playwright browser runner, e.g. its MCP
+`browser_run_code_unsafe` filename option; no browser package is installed here).
+If that tool is unavailable, an optional standalone runner works with an existing
+Edge installation: `npm exec --package=playwright -- node frontend/test/run-ui-smoke.cjs`.
+This obtains a browser runtime in npm's cache without adding dependencies to the
+project; set `SMOKE_BROWSER=chrome` to use installed Chrome instead of Edge.
+It resets fixture orders/localStorage, controls browser/server clocks without
+sleeps, and asserts the top banner/image/struck price, catalog-only badge, all
+three Add sources, merged/restored quantities, mixed-cart cents, midnight review,
+stale-date no-write/no-auto-retry, submitted date/ID-only payload, persisted
+confirmation snapshots, and failed-promotion hiding with ordinary browsing/Add.
+The fixture-only `/__smoke` control endpoint exists solely in this local helper,
+bound to loopback. Never expose it as a deployed application.
+
 ## Notes & scope
 
 - **MVP scope**: catalog browsing, cart, mock checkout, persisted orders.

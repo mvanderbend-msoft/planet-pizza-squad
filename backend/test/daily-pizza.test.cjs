@@ -82,6 +82,24 @@ test('two pizzas rotate daily; fewer than two are unavailable and stock is irrel
   }
 });
 
+test('a complete rotation persists exact UTC keys and wraps without adjacent repeats', () => {
+  const connection = new DatabaseSync(':memory:');
+  try {
+    seed(connection, 3);
+    const dates = ['2026-12-29', '2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02'];
+    const picks = dates.map(date => at(connection, `${date}T00:00:00Z`).product.id);
+    assert.equal(new Set(picks.slice(0, 3)).size, 3);
+    assert.equal(picks[3], picks[0]);
+    assert.equal(picks[4], picks[1]);
+    for (let i = 1; i < picks.length; i++) assert.notEqual(picks[i], picks[i - 1]);
+    assert.deepEqual(connection.prepare(
+      'SELECT valid_date, product_id FROM daily_pizza_selections ORDER BY valid_date'
+    ).all().map(row => [row.valid_date, row.product_id]), dates.map((date, i) => [date, picks[i]]));
+  } finally {
+    connection.close();
+  }
+});
+
 test('persisted picks survive reopened databases and concurrent first callers', async () => {
   const directory = fs.mkdtempSync(path.join(__dirname, '.daily-pizza-'));
   const filename = path.join(directory, 'test.db');
