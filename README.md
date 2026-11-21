@@ -129,7 +129,21 @@ The provider expires yesterday's selection at midnight UTC and refreshes on tab
 visibility, window focus and page restoration. Superseded responses are ignored;
 failed or out-of-date responses clear the banner and badges, independently of
 ordinary product loading. Banner Add uses the existing cart operation, retaining
-base product prices; discounted cart/checkout display is a separate work item.
+base product prices. Cart entries retain the same localStorage key and base-product
+snapshot/quantity shape; displayed unit and line totals derive from the shared
+current promotion, never from a discount locked at Add. Restored pizza snapshots
+are reconciled with the current menu before checkout, retaining quantities.
+
+Cart and checkout show provisional totals while pizza prices are loading or
+unverified, with explicit retry and no submission on transient errors. The exact
+insufficient-menu 503 response permits reviewed base prices with a clear notice.
+Merchandise-only checkout does not depend on promotion availability.
+
+Pay refreshes pizza pricing immediately before submitting. Changed totals require
+review and another Pay click; verified pizza checkout sends `promotion_date` but
+never client prices. A stale-date 409 refreshes pricing and requests review without
+automatically resubmitting or clearing the cart. Other failures likewise preserve
+the cart; only success clears it. Confirmation continues to use server snapshots.
 
 Run focused frontend promotion tests with `npm --prefix frontend test`.
 

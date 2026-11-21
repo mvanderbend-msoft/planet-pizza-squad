@@ -10,7 +10,14 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
 const storeModule = { exports: {} };
-new Function('exports', 'require', compiled)(storeModule.exports, require);
+const errorSource = fs.readFileSync(path.join(__dirname, '../src/api/ApiError.ts'), 'utf8');
+const errorModule = { exports: {} };
+new Function('exports', ts.transpileModule(errorSource, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText)(errorModule.exports);
+const { ApiError } = errorModule.exports;
+new Function('exports', 'require', compiled)(storeModule.exports,
+  (name) => name === '../api/ApiError' ? errorModule.exports : require(name));
 const { createDailyPromotionStore } = storeModule.exports;
 
 function daily(date = '2026-12-31', id = 7) {
@@ -152,4 +159,49 @@ test('a response crossing midnight without a timer is rejected; stopped/StrictMo
   await settle();
   assert.equal(h.store.getSnapshot().promotion.productId, 8);
   h.store.stop();
+});
+
+test('only the explicit insufficient-menu response verifies base prices, and only on its request date', async () => {
+  const h = harness();
+  let result = h.store.refresh();
+  h.requests.at(-1).reject(new ApiError(503, { error: 'Daily promotion unavailable' }));
+  await result;
+  assert.equal(h.store.getSnapshot().noOfferDate, '2026-12-31');
+  assert.equal(h.store.getSnapshot().error, null);
+  result = h.store.refresh();
+  h.requests.at(-1).reject(new ApiError(503, { error: 'Storage unavailable' }));
+  await result;
+  assert.equal(h.store.getSnapshot().noOfferDate, null);
+  assert.match(h.store.getSnapshot().error, /Storage unavailable/);
+  result = h.store.refresh();
+  h.setNow('2027-01-01T00:00:00Z');
+  h.requests.at(-1).reject(new ApiError(503, { error: 'Daily promotion unavailable' }));
+  await result;
+  assert.equal(h.store.getSnapshot().noOfferDate, null);
+  h.store.stop();
+});
+
+test('default browser timers are invoked without binding them to the clock object', () => {
+  const originalSet = global.setTimeout;
+  const originalClear = global.clearTimeout;
+  let scheduled = false, cleared = false;
+  global.setTimeout = function () {
+    assert.ok(this === global || this === undefined, 'browser timer receiver');
+    scheduled = true;
+    return 1;
+  };
+  global.clearTimeout = function () {
+    assert.ok(this === global || this === undefined, 'browser timer receiver');
+    cleared = true;
+  };
+  try {
+    const store = createDailyPromotionStore(() => new Promise(() => {}));
+    store.start();
+    store.stop();
+    assert.equal(scheduled, true);
+    assert.equal(cleared, true);
+  } finally {
+    global.setTimeout = originalSet;
+    global.clearTimeout = originalClear;
+  }
 });

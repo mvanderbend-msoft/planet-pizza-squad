@@ -1,12 +1,15 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { api, formatPrice } from '../api/client';
 import { useCart } from '../context/CartContext';
+import CartPricingNotice from '../components/CartPricingNotice';
+import { submitReviewedCart } from '../context/checkoutPricing';
 
 export default function CheckoutPage() {
-  const { items, totalCents, clear } = useCart();
+  const { items, totalCents, clear, pricingStatus, refreshPricing } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', email: '', address: '' });
 
@@ -14,17 +17,29 @@ export default function CheckoutPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (inFlight.current || pricingStatus === 'loading' || pricingStatus === 'unavailable') return;
+    inFlight.current = true;
     setSubmitting(true);
     setError(null);
     try {
-      const order = await api.createOrder({
-        customer: form,
-        items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
-      });
+      const result = await submitReviewedCart(
+        { items, totalCents, status: pricingStatus }, refreshPricing,
+        (fresh) => api.createOrder({
+          customer: form,
+          items: fresh.items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+          ...(fresh.promotionDate ? { promotion_date: fresh.promotionDate } : {}),
+        })
+      );
+      if ('review' in result) {
+        setError(result.review);
+        return;
+      }
       clear();
-      navigate(`/order/${order.id}`, { replace: true });
+      navigate(`/order/${result.order.id}`, { replace: true });
     } catch (err) {
       setError(String(err));
+    } finally {
+      inFlight.current = false;
       setSubmitting(false);
     }
   }
@@ -48,9 +63,10 @@ export default function CheckoutPage() {
           <textarea className="input mt-1" rows={3} required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
         </div>
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        <CartPricingNotice />
+        {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
 
-        <button type="submit" disabled={submitting} className="btn-primary w-full">
+        <button type="submit" disabled={submitting || pricingStatus === 'loading' || pricingStatus === 'unavailable'} className="btn-primary w-full">
           {submitting ? 'Transmitting…' : `Pay ${formatPrice(totalCents)} (mock)`}
         </button>
       </form>
@@ -61,7 +77,7 @@ export default function CheckoutPage() {
           {items.map((i) => (
             <li key={i.product.id} className="flex justify-between">
               <span>{i.product.name} × {i.quantity}</span>
-              <span className="font-mono">{formatPrice(i.product.price_cents * i.quantity)}</span>
+              <span className="font-mono">{formatPrice(i.unitPriceCents * i.quantity)}</span>
             </li>
           ))}
         </ul>

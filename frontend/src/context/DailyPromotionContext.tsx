@@ -4,6 +4,7 @@ import { createDailyPromotionStore, type DailyPromotion, type DailyPromotionStat
 
 type DailyPromotionContextValue = DailyPromotionState & {
   refresh: () => Promise<DailyPromotion | null>;
+  getSnapshot: () => DailyPromotionState;
 };
 
 const DailyPromotionContext = createContext<DailyPromotionContextValue | null>(null);
@@ -30,7 +31,7 @@ export function DailyPromotionProvider({ children }: { children: ReactNode }) {
   }, [store]);
 
   return (
-    <DailyPromotionContext.Provider value={{ ...state, refresh: store.refresh }}>
+    <DailyPromotionContext.Provider value={{ ...state, refresh: store.refresh, getSnapshot: store.getSnapshot }}>
       {children}
     </DailyPromotionContext.Provider>
   );

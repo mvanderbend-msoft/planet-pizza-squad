@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../api/client';
 import { useCart } from '../context/CartContext';
+import CartPricingNotice from '../components/CartPricingNotice';
 
 export default function CartPage() {
   const { items, updateQuantity, remove, totalCents } = useCart();
@@ -18,8 +19,9 @@ export default function CartPage() {
   return (
     <div>
       <h1 className="text-4xl text-alien-700 mb-6">Cargo Bay</h1>
+      <CartPricingNotice />
       <div className="card divide-y divide-slate-200">
-        {items.map(({ product, quantity }) => (
+        {items.map(({ product, quantity, unitPriceCents }) => (
           <div key={product.id} className="flex items-center gap-4 p-4">
             <img
               src={product.image_url}
@@ -29,7 +31,7 @@ export default function CartPage() {
             />
             <div className="flex-1">
               <Link to={`/product/${product.id}`} className="font-display text-lg text-alien-700 hover:text-alien-600">{product.name}</Link>
-              <p className="font-mono text-sm text-slate-500">{formatPrice(product.price_cents)}</p>
+              <p className="font-mono text-sm text-slate-500">{formatPrice(unitPriceCents)}</p>
             </div>
             <input
               type="number"
@@ -39,7 +41,7 @@ export default function CartPage() {
               onChange={(e) => updateQuantity(product.id, Number(e.target.value) || 0)}
               className="input w-20"
             />
-            <div className="w-24 text-right font-mono text-slate-900">{formatPrice(product.price_cents * quantity)}</div>
+            <div className="w-24 text-right font-mono text-slate-900">{formatPrice(unitPriceCents * quantity)}</div>
             <button onClick={() => remove(product.id)} className="text-slate-400 hover:text-red-500 text-xl px-2" aria-label="Remove">×</button>
           </div>
         ))}

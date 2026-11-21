@@ -1,4 +1,5 @@
 import type { DailyPizza, Product } from '../api/client';
+import { ApiError } from '../api/ApiError';
 
 export type DailyPromotion = {
   productId: number;
@@ -12,6 +13,7 @@ export type DailyPromotionState = {
   product: Product | null;
   loading: boolean;
   error: string | null;
+  noOfferDate: string | null;
 };
 
 type Clock = {
@@ -24,9 +26,13 @@ const utcDate = (instant: number) => new Date(instant).toISOString().slice(0, 10
 
 export function createDailyPromotionStore(
   load: (signal: AbortSignal) => Promise<DailyPizza>,
-  clock: Clock = { now: Date.now, setTimeout, clearTimeout }
+  clock: Clock = {
+    now: Date.now,
+    setTimeout: (callback, delay) => setTimeout(callback, delay),
+    clearTimeout: (timer) => clearTimeout(timer),
+  }
 ) {
-  let state: DailyPromotionState = { promotion: null, product: null, loading: true, error: null };
+  let state: DailyPromotionState = { promotion: null, product: null, loading: true, error: null, noOfferDate: null };
   let generation = 0;
   let controller: AbortController | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -41,12 +47,14 @@ export function createDailyPromotionStore(
     const request = ++generation;
     controller?.abort();
     controller = new AbortController();
+    const requestDate = utcDate(clock.now());
     const current = state.promotion?.validDate === utcDate(clock.now());
     publish({
       promotion: current ? state.promotion : null,
       product: current ? state.product : null,
       loading: true,
       error: null,
+      noOfferDate: null,
     });
     try {
       const daily = await load(controller.signal);
@@ -69,11 +77,16 @@ export function createDailyPromotionStore(
         discountedPriceCents: daily.discounted_price_cents,
         validDate: daily.valid_date,
       };
-      publish({ promotion, product: daily.product, loading: false, error: null });
+      publish({ promotion, product: daily.product, loading: false, error: null, noOfferDate: null });
       return promotion;
     } catch (error) {
       if (request === generation) {
-        publish({ promotion: null, product: null, loading: false, error: String(error) });
+        const noOffer = error instanceof ApiError && error.status === 503 &&
+          error.body.error === 'Daily promotion unavailable' && requestDate === utcDate(clock.now());
+        publish({
+          promotion: null, product: null, loading: false,
+          error: noOffer ? null : String(error), noOfferDate: noOffer ? requestDate : null,
+        });
       }
       return null;
     }
