@@ -8,6 +8,7 @@ const express = require('express');
 process.env.DB_PATH = ':memory:';
 const { db, migrate } = require('../dist/db');
 const { createOrdersRouter } = require('../dist/routes/orders');
+const { createDailyPizzaRouter } = require('../dist/routes/daily-pizza');
 after(() => db.close());
 
 const customer = { name: 'Test Buyer', email: 'buyer@example.com', address: '1 Pizza Way' };
@@ -31,6 +32,7 @@ function seed(connection) {
 async function serve(t, connection, clock = () => new Date(beforeMidnight)) {
   const app = express();
   app.use(express.json());
+  app.use('/api/pizza-of-the-day', createDailyPizzaRouter(connection, clock));
   app.use('/api/orders', createOrdersRouter(connection, clock));
   const server = app.listen(0, '127.0.0.1');
   await new Promise(resolve => server.once('listening', resolve));
@@ -39,6 +41,10 @@ async function serve(t, connection, clock = () => new Date(beforeMidnight)) {
   });
   const base = `http://127.0.0.1:${server.address().port}/api/orders`;
   return {
+    async daily() {
+      const response = await fetch(`${base.replace('/orders', '/pizza-of-the-day')}`);
+      return { status: response.status, body: await response.json() };
+    },
     async post(body) {
       const response = await fetch(base, {
         method: 'POST',
@@ -66,6 +72,33 @@ function counts(connection) {
   return ['orders', 'order_items'].map(table =>
     connection.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n);
 }
+
+test('advertised selection and checkout agree for both resolver entry paths, including zero and fractional cents', async t => {
+  const { connection, daily, post, get } = await fixture(t);
+  for (const [price, expected] of [[1001, 801], [0, 0]]) {
+    connection.prepare('UPDATE products SET price_cents = ? WHERE id = 1').run(price);
+    const advertised = await daily();
+    assert.equal(advertised.status, 200);
+    assert.equal(advertised.body.product.id, 1);
+    assert.equal(advertised.body.product.price_cents, price);
+    assert.equal(advertised.body.discounted_price_cents, expected);
+    const paid = await post({ customer, promotion_date: advertised.body.valid_date,
+      items: [{ productId: 1, quantity: 3, unit_price_cents: 99999 },
+        { productId: 2, quantity: 1 }, { productId: 3, quantity: 2 }] });
+    assert.equal(paid.status, 201);
+    assert.deepEqual(paid.body.items.map(item => item.unit_price_cents), [expected, 1299, 2000]);
+    assert.equal(paid.body.total_cents, expected * 3 + 1299 + 4000);
+    assert.deepEqual(await get(paid.body.id), { status: 200, body: paid.body });
+  }
+  connection.exec('DELETE FROM daily_pizza_selections');
+  const paid = await post({ customer, items: [{ productId: 1, quantity: 1 }, { productId: 2, quantity: 1 }] });
+  assert.equal(paid.status, 201);
+  const advertised = await daily();
+  assert.equal(advertised.status, 200);
+  const selected = paid.body.items.find(item => item.product_id === advertised.body.product.id);
+  assert.equal(selected.unit_price_cents, advertised.body.discounted_price_cents);
+  assert.equal(connection.prepare('SELECT COUNT(*) AS n FROM daily_pizza_selections').get().n, 1);
+});
 
 test('mixed checkout discounts every matching line per unit and persists paid snapshots', async t => {
   const { connection, post, get } = await fixture(t);

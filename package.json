@@ -5,7 +5,10 @@
   "description": "Alien / Area 51 themed pizza & merch webshop",
   "scripts": {
     "dev": "concurrently -n be,fe -c green,magenta \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
-    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build && npm run test:compiled",
+    "test": "npm --prefix backend run build && npm run test:compiled",
+    "test:compiled": "npm --prefix backend run test:compiled && npm --prefix frontend test",
+    "smoke:serve": "node backend/test/ui-smoke-server.cjs",
     "start": "npm --prefix backend run start",
     "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install"
   },

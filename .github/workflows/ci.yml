@@ -16,10 +16,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Backend build
+          node-version: 24
+      - name: Backend dependencies
         working-directory: backend
-        run: npm ci && npm run build
-      - name: Frontend build
+        run: npm ci
+      - name: Frontend dependencies
         working-directory: frontend
-        run: npm ci && npm run build
+        run: npm ci
+      - name: Build and regression tests
+        run: npm run build
