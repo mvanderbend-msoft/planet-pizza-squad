@@ -1,0 +1,8 @@
+{
+  "schema": "squad-agent-provenance/v1",
+  "schema_version": 1,
+  "revision": 1,
+  "generated_at": "1970-01-01T00:00:00.000Z",
+  "agents": {},
+  "transaction_id": "bd01c585-e125-4408-b40a-e9d4b939ea29"
+}
