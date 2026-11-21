@@ -188,7 +188,20 @@ cleanup/restarts. Tracking never clears or modifies the cart.
 `frontend/src/context/orderTrackingStore.ts` exports `createOrderTrackingStore`
 (injectable API/timers, `start`, `stop`, `retry`, `subscribe`, `getSnapshot`) and
 `parseOrderId`. Focused owner tests use the existing in-memory TypeScript/native
-node:test pattern: `npm --prefix frontend test`.
+node:test pattern: `npm --prefix frontend test`. CI also discovers
+`frontend/test/tracking-pages.test.cjs`: dev-only jsdom mounts the production
+App routes, pages and providers with React DOM, compiling TS/TSX in memory.
+Only fetch and the tracking store's timer boundary are injected. Deferred API
+responses and a deterministic clock exercise visible progress/paid snapshots,
+completion-based polling, terminal/not-found cleanup, route changes, StrictMode,
+outage retention/recovery, lookup validation and cart→checkout→confirmation
+tracking navigation without real polling sleeps. DOM, storage, fetch mocks and
+timers are cleaned up per case. Router defaults match production.
+
+jsdom does not render CSS or implement implicit keyboard default actions. The
+Enter case dispatches the key event and performs its unprevented native form
+submission explicitly; the optional real-browser smoke below additionally checks
+actual Enter behavior, layout and narrow-screen navigation.
 
 ### Frontend promotion state
 
@@ -225,10 +238,12 @@ Run focused frontend promotion tests with `npm --prefix frontend test`.
 
 Run `npm test` from the root for all native `node:test` regressions. `npm run build`
 compiles both packages and runs the same tests once; the required CI `build` job
-uses this root command on Node 24. No dedicated test dependencies are needed.
+uses this root command on Node 24. Frontend mounted-page tests use dev-only jsdom;
+no additional test runner or browser installation is needed.
 SQLite fixtures use memory or disposable databases underneath `backend/test`,
 never `backend/data/app.db`; clocks are injected/fixed and concurrency uses worker
-connections. Frontend tests compile production pricing/state modules in memory.
+connections. Frontend tests compile production pricing/state modules and mounted
+React pages in memory.
 Order lifecycle regressions check every transition ±1 ms without real lifecycle
 waits, skipped-poll catch-up across independently synchronized SQLite workers,
 rollback/retry and restart durability. Legacy UTC interpretation is also checked
