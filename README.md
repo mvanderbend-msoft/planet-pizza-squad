@@ -89,8 +89,30 @@ Fewer than two eligible pizzas returns HTTP 503
 The reusable `resolveDailyPizza(connection, clock)` captures one server instant;
 `discountedUnitPrice(priceCents)` rounds the 20%-off unit price half-up to integer
 cents (`floor((priceCents * 80 + 50) / 100)`: 1299 → 1039, 1001 → 801).
-Order integration can reuse this rounded unit price before multiplying by quantity;
-this endpoint alone does not change order pricing or existing stock checks.
+Checkout reuses this rounded unit price before multiplying by quantity.
+
+### Order pricing and rollover
+
+`POST /api/orders` accepts `{ customer: { name, email, address }, items:
+[{ productId, quantity }], promotion_date?: "YYYY-MM-DD" }`.
+Prices are server-owned: every line for the daily pizza receives 20% off, rounded
+per unit before multiplying by quantity (1299 × 3 becomes 1039 × 3 = 3117 cents).
+Other pizzas and merchandise retain base prices; client prices and discount flags
+are ignored. Existing validation and stock checks still apply.
+
+One server instant determines the UTC promotion date for the entire checkout.
+Clients may send the last reviewed `promotion_date`. A different valid date returns
+HTTP 409 `{ "error": "Promotion date changed", "code": "PROMOTION_DATE_CHANGED" }`
+without creating any order or items; refresh the promotion and require review
+before retrying. Malformed or impossible calendar dates return HTTP 400.
+Omitting the field remains supported and uses server-current prices.
+When no viable daily promotion exists, ordering continues at base prices;
+unexpected promotion/storage failures reject the order instead of dropping discounts.
+
+Orders remain mock-paid. `total_cents` and each item's `unit_price_cents` are
+persisted paid snapshots, shared by the POST response, subsequent order GET and
+confirmation. Rollover, restart and later catalog-price changes never reprice them.
+Order and item writes remain atomic.
 
 Run focused backend behavior tests with `npm --prefix backend test` (Node ≥ 22.5).
 
