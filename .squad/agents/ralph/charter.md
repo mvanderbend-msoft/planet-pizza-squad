@@ -55,8 +55,13 @@ route work — I don't do it.
 
 ## Project Context
 
-**Project:** {project_name}
-{project_description}
+**Project:** Planet Pizza
+Pizza and merchandise ordering web app: React/Vite/TypeScript/Tailwind in `frontend\`;
+Node.js/Express/TypeScript/SQLite in `backend\`.
+Requester: mvanderbend (inferred repository owner; git user.name was empty).
+Initialized: 2026-11-21T11:55:40.330+01:00.
+Squad coordinates; Jim leads, Pam owns frontend, Dwight backend, Oscar tests.
+Team bootstrap alone does not authorize board scanning or autonomous backlog work.
 
 ## Learnings
 

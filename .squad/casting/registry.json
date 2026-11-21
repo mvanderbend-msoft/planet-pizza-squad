@@ -1,8 +1,49 @@
 {
   "schema": "squad-agent-provenance/v1",
   "schema_version": 1,
-  "revision": 1,
-  "generated_at": "1970-01-01T00:00:00.000Z",
-  "agents": {},
-  "transaction_id": "bd01c585-e125-4408-b40a-e9d4b939ea29"
+  "revision": 2,
+  "generated_at": "2026-11-21T11:55:40.330+01:00",
+  "agents": {
+    "jim": {
+      "display_name": "Jim",
+      "persistent_name": "Jim",
+      "role": "Lead",
+      "universe": "The Office",
+      "status": "active",
+      "created_at": "2026-11-21T11:55:40.330+01:00",
+      "updated_at": "2026-11-21T11:55:40.330+01:00",
+      "legacy_named": false
+    },
+    "pam": {
+      "display_name": "Pam",
+      "persistent_name": "Pam",
+      "role": "Frontend Dev",
+      "universe": "The Office",
+      "status": "active",
+      "created_at": "2026-11-21T11:55:40.330+01:00",
+      "updated_at": "2026-11-21T11:55:40.330+01:00",
+      "legacy_named": false
+    },
+    "dwight": {
+      "display_name": "Dwight",
+      "persistent_name": "Dwight",
+      "role": "Backend Dev",
+      "universe": "The Office",
+      "status": "active",
+      "created_at": "2026-11-21T11:55:40.330+01:00",
+      "updated_at": "2026-11-21T11:55:40.330+01:00",
+      "legacy_named": false
+    },
+    "oscar": {
+      "display_name": "Oscar",
+      "persistent_name": "Oscar",
+      "role": "Tester",
+      "universe": "The Office",
+      "status": "active",
+      "created_at": "2026-11-21T11:55:40.330+01:00",
+      "updated_at": "2026-11-21T11:55:40.330+01:00",
+      "legacy_named": false
+    }
+  },
+  "transaction_id": "5e4374b7-e367-49b6-97d6-e6fc667f4f49"
 }

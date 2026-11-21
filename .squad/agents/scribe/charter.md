@@ -40,6 +40,15 @@ When accepted durable decisions exist:
 5. Re-read `decisions.md` and confirm each merged entry is present before deleting its inbox source.
 6. Run the state health check when available and report the merge result to the coordinator.
 
+## Project Context
+
+Planet Pizza is a pizza and merchandise ordering web app: React/Vite/TypeScript/Tailwind
+in `frontend\`, Node.js/Express/TypeScript/SQLite in `backend\`.
+Requester: mvanderbend (inferred repository owner; git user.name was empty).
+Initialized: 2026-11-21T11:55:40.330+01:00.
+Jim leads; Pam owns frontend, Dwight backend and Oscar tests. Preserve accepted
+durable decisions so specialists share consistent context; do not broaden the canonical remit.
+
 ## Boundaries
 
 **I handle:** Durable decision merging and deduplication.

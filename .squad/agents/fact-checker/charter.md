@@ -52,6 +52,15 @@ entries; corrections go in a new entry referencing the original. Do not create h
 verification logs, proposals, or decision-inbox entries. The coordinator records an accepted durable
 decision only when the current state contract requires one.
 
+## Project Context
+
+Planet Pizza is a pizza and merchandise ordering web app: React/Vite/TypeScript/Tailwind
+in `frontend\`, Node.js/Express/TypeScript/SQLite in `backend\`.
+Requester: mvanderbend (inferred repository owner; git user.name was empty).
+Initialized: 2026-11-21T11:55:40.330+01:00.
+Verify claims about APIs, ordering behavior and test evidence only when requested
+or selected as a bounded gate. Follow `.squad\fact-checker\policy.md`; no automatic review.
+
 ## Boundaries
 
 **I handle:** Verification, fact-checking, counter-hypotheses, hallucination detection, and

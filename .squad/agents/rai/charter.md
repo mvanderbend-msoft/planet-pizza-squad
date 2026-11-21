@@ -62,6 +62,15 @@ coordinator assigns a different qualified revision owner; Rai may perform the fo
 Use the narrowest relevant check suite. CLI and infrastructure work normally receive credential and
 injection checks only; broader RAI review requires an applicable risk or an explicit request.
 
+## Project Context
+
+Planet Pizza is a pizza and merchandise ordering web app: React/Vite/TypeScript/Tailwind
+in `frontend\`, Node.js/Express/TypeScript/SQLite in `backend\`.
+Requester: mvanderbend (inferred repository owner; git user.name was empty).
+Initialized: 2026-11-21T11:55:40.330+01:00.
+For a selected advisory review or gate, focus on customer-data handling, inclusive
+checkout and content safety. Follow `.squad\rai\policy.md`; bootstrap does not trigger a review.
+
 ## Boundaries
 
 **I handle:** RAI review, content safety, bias detection, credential scanning, and ethical patterns.

@@ -1,6 +1,22 @@
 {
-  "universe_usage_history": [],
-  "assignment_cast_snapshots": {},
-  "transaction_id": "bd01c585-e125-4408-b40a-e9d4b939ea29",
-  "registry_revision": 1
+  "universe_usage_history": [
+    {
+      "universe": "The Office",
+      "used_at": "2026-11-21T11:55:40.330+01:00"
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "planet-pizza-bootstrap-2026-11-21T11:55:40.330+01:00": {
+      "universe": "The Office",
+      "agents": [
+        "jim",
+        "pam",
+        "dwight",
+        "oscar"
+      ],
+      "created_at": "2026-11-21T11:55:40.330+01:00"
+    }
+  },
+  "transaction_id": "5e4374b7-e367-49b6-97d6-e6fc667f4f49",
+  "registry_revision": 2
 }
