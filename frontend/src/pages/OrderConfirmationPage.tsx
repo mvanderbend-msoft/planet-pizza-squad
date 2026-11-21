@@ -44,7 +44,10 @@ export default function OrderConfirmationPage() {
         Drop coordinates: <span className="text-slate-900">{order.shipping_address}</span>
       </p>
 
-      <Link to="/" className="btn-secondary mt-8 inline-flex">Return to base</Link>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link to={`/orders/${order.id}/track`} className="btn-primary">Track your order</Link>
+        <Link to="/" className="btn-secondary">Return to base</Link>
+      </div>
     </div>
   );
 }

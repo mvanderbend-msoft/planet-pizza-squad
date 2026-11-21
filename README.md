@@ -56,7 +56,7 @@ planet-pizza/
         ├── api/          # Typed fetch client
         ├── components/   # Layout, ProductCard
         ├── context/      # CartContext (localStorage-persisted)
-        └── pages/        # Home, Catalog, ProductDetail, Cart, Checkout, OrderConfirmation, OrderTracking
+        └── pages/        # Home, Catalog, ProductDetail, Cart, Checkout, OrderConfirmation, OrderLookup, OrderTracking
 ```
 
 ## API surface
@@ -154,10 +154,20 @@ invalid IDs return 400 `{ "error": "Invalid id" }`. Storage failures return JSON
 
 #### Tracking page and refresh behavior
 
+After checkout, the confirmation's **Track your order** button opens
+`/orders/<persisted order.id>/track`. The shared header's **Track order** link opens
+`/orders/track`, an order-number-only lookup form. Enter the digits from your
+confirmation (no `#`, email or customer details); Enter or **Track order** submits.
+Outer whitespace is trimmed and leading zeroes are normalized. Blank, zero,
+negative, fractional, exponent/nondecimal and unsafe-integer numbers show an
+inline error without making order requests. Valid numbers open the same tracker;
+unknown orders and API outages use its not-found and retry behavior.
+
 Open `/orders/:id/track` directly or reload it without cart or localStorage data.
 The existing confirmation route remains `/order/:id`. Order numbers must be
 positive decimal safe integers; invalid numbers make no order requests. Static
-production hosts must fall back to `index.html` for these React Router URLs.
+production hosts must fall back to `index.html` for these React Router URLs,
+including `/orders/track`.
 
 The page immediately requests status and the immutable paid order manifest
 separately, using no-store requests. Five labeled steps expose the current step,
@@ -243,6 +253,10 @@ sleeps, and asserts the top banner/image/struck price, catalog-only badge, all
 three Add sources, merged/restored quantities, mixed-cart cents, midnight review,
 stale-date no-write/no-auto-retry, submitted date/ID-only payload, persisted
 confirmation snapshots, and failed-promotion hiding with ordinary browsing/Add.
+It also checks the persisted-ID confirmation tracking link, header lookup,
+accessible inline validation/no invalid requests, Enter/submit normalization,
+single-tracker fetching, unknown/direct/reloaded routes, fallback and 320px
+navigation with a preserved cart count.
 The fixture-only `/__smoke` control endpoint exists solely in this local helper,
 bound to loopback. Never expose it as a deployed application.
 

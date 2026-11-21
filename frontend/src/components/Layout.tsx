@@ -6,14 +6,15 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur sticky top-0 z-10 shadow-soft">
-        <div className="mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
+        <div className="mx-auto max-w-6xl flex flex-col gap-3 sm:flex-row items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2 font-display text-xl font-black text-alien-700">
             <img src="/images/ufo.svg" alt="" className="h-8 w-8" />
             PLANET&nbsp;PIZZA
           </Link>
-          <nav className="flex items-center gap-6 font-display uppercase text-sm tracking-wider">
+          <nav aria-label="Main navigation" className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 sm:gap-x-6 font-display uppercase text-sm tracking-wider">
             <NavLink to="/pizzas" className={navClass}>Pizzas</NavLink>
             <NavLink to="/merch" className={navClass}>Merch</NavLink>
+            <NavLink to="/orders/track" className={navClass}>Track order</NavLink>
             <NavLink to="/cart" className={navClass}>
               Cart {totalCount > 0 && <span className="ml-1 rounded-full bg-alien-600 px-2 py-0.5 text-xs text-white">{totalCount}</span>}
             </NavLink>
