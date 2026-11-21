@@ -1,3 +1,5 @@
+import { ApiError } from './ApiError';
+
 export type Product = {
   id: number;
   sku: string;
@@ -45,7 +47,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`API ${res.status}: ${text}`);
+    let body;
+    try { body = JSON.parse(text); } catch { body = { error: text }; }
+    throw new ApiError(res.status, body ?? {});
   }
   return res.json() as Promise<T>;
 }
@@ -59,6 +63,7 @@ export const api = {
   createOrder: (body: {
     customer: { name: string; email: string; address: string };
     items: { productId: number; quantity: number }[];
+    promotion_date?: string;
   }) => request<Order>('/orders', { method: 'POST', body: JSON.stringify(body) }),
   getOrder: (id: number) => request<Order>(`/orders/${id}`),
 };
