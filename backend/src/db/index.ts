@@ -43,6 +43,13 @@ export function migrate(connection: DatabaseSync = db): void {
       name_snapshot TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS order_tracking_steps (
+      order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      status TEXT NOT NULL CHECK (status IN ('received', 'preparing', 'baking', 'out_for_delivery', 'delivered')),
+      reached_at TEXT NOT NULL,
+      PRIMARY KEY (order_id, status)
+    );
+
     CREATE TABLE IF NOT EXISTS daily_pizza_selections (
       valid_date TEXT PRIMARY KEY,
       product_id INTEGER NOT NULL REFERENCES products(id)
